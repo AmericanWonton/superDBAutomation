@@ -94,6 +94,8 @@ func main() {
 	err = db.Ping()
 	check(err)
 
+	fmt.Println("Test string.")
+
 	//Handle Requests
 	handleRequests()
 }
