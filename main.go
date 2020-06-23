@@ -2,13 +2,17 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 
 	"github.com/gobuffalo/packr/v2"
-	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
+
+	_ "github.com/go-mysql/errors"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 //Here's our User struct
@@ -19,6 +23,46 @@ type User struct {
 	Last     string `json:"Last"`
 	Role     string `json:"Role"`
 	UserID   int    `json:"UserID"`
+}
+
+type SpecialUser struct {
+	Name        string  `json:"name"`
+	Address     string  `json:"address"`
+	Latitude    float64 `json:"latitude"`
+	Longitude   float64 `json:"longitude"`
+	MaidenName  string  `json:"maiden_name"`
+	BirthData   string  `json:"birth_data"`
+	PhoneH      string  `json:"phone_h"`
+	PhoneW      string  `json:"phone_w"`
+	EmailU      string  `json:"email_u"`
+	EmailD      string  `json:"email_d"`
+	Username    string  `json:"username"`
+	Password    string  `json:"password"`
+	Domain      string  `json:"domain"`
+	Useragent   string  `json:"useragent"`
+	Ipv4        string  `json:"ipv4"`
+	Macaddress  string  `json:"macaddress"`
+	Plasticcard string  `json:"plasticcard"`
+	Cardexpir   string  `json:"cardexpir"`
+	Bonus       int     `json:"bonus"`
+	Company     string  `json:"company"`
+	Color       string  `json:"color"`
+	UUID        string  `json:"uuid"`
+	Height      int     `json:"height"`
+	Weight      int     `json:"weight"`
+	Blood       string  `json:"blood"`
+	Eye         string  `json:"eye"`
+	Hair        string  `json:"hair"`
+	Pict        string  `json:"pict"`
+	URL         string  `json:"url"`
+	Sport       string  `json:"sport"`
+	Ipv4URL     string  `json:"ipv4_url"`
+	EmailURL    string  `json:"email_url"`
+	DomainURL   string  `json:"domain_url"`
+}
+
+type UserCollection struct {
+	TheUsers User `json:"TheUsers"`
 }
 
 //Below is our struct for Hotdogs/Hamburgers
@@ -53,37 +97,6 @@ func HandleError(w http.ResponseWriter, err error) {
 	}
 }
 
-//Handle all Requests coming in
-func handleRequests() {
-	myRouter := mux.NewRouter().StrictSlash(true)
-
-	http.Handle("/favicon.ico", http.NotFoundHandler()) //For missing FavIcon
-	myRouter.HandleFunc("/", homePage)
-	myRouter.HandleFunc("/signup", signUp)
-	myRouter.HandleFunc("/mainPage", mainPage)
-	myRouter.HandleFunc("/signUpUserUpdated", signUpUserUpdated)
-	//Database Stuff
-	myRouter.HandleFunc("/deleteFood", deleteFood).Methods("POST")
-	myRouter.HandleFunc("/updateFood", updateFood).Methods("POST")           //Update a certain food item
-	myRouter.HandleFunc("/insertHotDog", insertHotDog).Methods("POST")       //Post a hotdog!
-	myRouter.HandleFunc("/insertHamburger", insertHamburger).Methods("POST") //Post a hamburger!
-	myRouter.HandleFunc("/getAllFoodUser", getAllFoodUser).Methods("POST")   //Get all foods for a User ID
-	myRouter.HandleFunc("/getHotDog", getHotDog).Methods("GET")              //Get a SINGULAR hotdog
-	myRouter.HandleFunc("/insertUser", insertUser).Methods("POST")           //Post a User!
-	myRouter.HandleFunc("/getUsers", getUsers).Methods("GET")                //Get a Users!
-	myRouter.HandleFunc("/updateUsers", updateUsers).Methods("POST")         //Get a Users!
-	myRouter.HandleFunc("/deleteUsers", deleteUsers).Methods("POST")         //DELETE a Users!
-	//Validation Stuff
-	myRouter.HandleFunc("/checkUsername", checkUsername) //Check Username
-	myRouter.HandleFunc("/loadUsernames", loadUsernames) //Loads in Usernames
-	//Middleware logging
-	myRouter.Handle("/", loggingMiddleware(http.HandlerFunc(logHandler)))
-	//Serve our static files
-	myRouter.Handle("/", http.FileServer(templatesBox))
-	myRouter.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(templatesBox)))
-	log.Fatal(http.ListenAndServe(":80", myRouter))
-}
-
 func main() {
 	//open SQL connection
 	db, err = sql.Open("mysql",
@@ -95,9 +108,8 @@ func main() {
 	check(err)
 
 	fmt.Println("Test string.")
+	userCreator()
 
-	//Handle Requests
-	handleRequests()
 }
 
 //Check errors in our mySQL errors
@@ -118,4 +130,35 @@ func loggingMiddleware(next http.Handler) http.Handler {
 		logrus.Infof("uri: %v\n", req.RequestURI)
 		next.ServeHTTP(w, req)
 	})
+}
+
+func userCreator() {
+	fmt.Println("Making random Users.")
+
+	url := "https://api.namefake.com"
+	method := "GET"
+
+	client := &http.Client{}
+	req, err := http.NewRequest(method, url, nil)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	res, err := client.Do(req)
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Printf("Here is our Body: \n%v\n\n", string(body))
+
+	//theBytes := []byte(string(body))
+
+	var theNewUser SpecialUser
+	json.Unmarshal(body, &theNewUser)
+
+	fmt.Printf("Here is our response: \n%v\n\n", theNewUser)
+
 }
