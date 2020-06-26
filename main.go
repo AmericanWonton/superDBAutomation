@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gobuffalo/packr/v2"
 	"github.com/sirupsen/logrus"
@@ -137,28 +138,50 @@ func userCreator() {
 
 	url := "https://api.namefake.com"
 	method := "GET"
+	//Make 5 Users
+	for v := 0; v < 5; v++ {
+		client := &http.Client{}
+		req, err := http.NewRequest(method, url, nil)
 
-	client := &http.Client{}
-	req, err := http.NewRequest(method, url, nil)
+		if err != nil {
+			fmt.Println(err)
+		}
 
-	if err != nil {
-		fmt.Println(err)
+		res, err := client.Do(req)
+		defer res.Body.Close()
+		body, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		var theNewUser SpecialUser
+		json.Unmarshal(body, &theNewUser)
+
+		nameArray := strings.Fields(theNewUser.Name)
+		fName := ""
+		lName := ""
+		for v := 0; v < len(nameArray); v++ {
+			if v == 0 {
+				fName = nameArray[v]
+			} else if v >= 2 {
+				break
+			} else {
+				lName = nameArray[v]
+			}
+		}
+
+		//Create a User
+		newUser := User{
+			UserName: theNewUser.Username,
+			Password: "Penis",
+			First:    fName,
+			Last:     lName,
+			Role:     randomRole(),
+			UserID:   randomID(),
+		}
+		insertUser(newUser) //User inserted
+		//Give User some food
+		fmt.Printf("Giving this User some food: %v\n", newUser.UserID)
+		giveRandomFood(newUser.UserID)
 	}
-
-	res, err := client.Do(req)
-	defer res.Body.Close()
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	fmt.Printf("Here is our Body: \n%v\n\n", string(body))
-
-	//theBytes := []byte(string(body))
-
-	var theNewUser SpecialUser
-	json.Unmarshal(body, &theNewUser)
-
-	fmt.Printf("Here is our response: \n%v\n\n", theNewUser)
-
 }
