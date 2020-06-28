@@ -144,12 +144,12 @@ func giveRandomFood(userID int) {
 			if allGood == true {
 				goodFood = true //Food not found, we can add it to takenFoods
 				takenFoods = append(takenFoods, randomNum)
-				fmt.Printf("DEBUG: Added %v to the takenFoods: %v\n", randomNum, takenFoods)
 			} else {
 
 			}
 		}
 	}
+	var theHamburgers []Hamburger
 	//Give 3 Hamburger
 	for z := 0; z < len(takenFoods); z++ {
 		newHamburger := Hamburger{hamburgerArray.TypeArray[takenFoods[z]],
@@ -157,11 +157,10 @@ func giveRandomFood(userID int) {
 			hamburgerArray.CaloriesArray[takenFoods[z]],
 			hamburgerArray.NameArray[takenFoods[z]],
 			userID}
-		//wg.Add(1) Need to add our wait groups for the program
-		//go
-		insertHamburger(newHamburger)
+		theHamburgers = append(theHamburgers, newHamburger)
 	}
-	//Give 3 Hotdogs
+	insertHamburgers(theHamburgers)
+	//Assign Hotdog Nums
 	takenFoods = takenFoods[:0]
 	for x := 0; x < 3; x++ {
 		//Select random Hotdog
@@ -181,12 +180,12 @@ func giveRandomFood(userID int) {
 			if allGood == true {
 				goodFood = true //Food not found, we can add it to takenFoods
 				takenFoods = append(takenFoods, randomNum)
-				fmt.Printf("DEBUG: Added %v to the takenFoods: %v\n", randomNum, takenFoods)
 			} else {
 
 			}
 		}
 	}
+	var theHotdogs []Hotdog
 	//Give 3 Hotdogs
 	for z := 0; z < len(takenFoods); z++ {
 		newHotdog := Hotdog{hotDogArray.TypeArray[takenFoods[z]],
@@ -194,8 +193,8 @@ func giveRandomFood(userID int) {
 			hotDogArray.CaloriesArray[takenFoods[z]],
 			hotDogArray.NameArray[takenFoods[z]],
 			userID}
-		//wg.Add(1) Need to add our wait groups for the program
-		//go
-		insertHotDog(newHotdog)
+		theHotdogs = append(theHotdogs, newHotdog)
 	}
+	insertHotDog(theHotdogs)
+	wg.Done() //WaitGroup whatever
 }

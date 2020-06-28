@@ -1,81 +1,47 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"strings"
 )
 
 const successMessage string = "Successful Insert"
 const failureMessage string = "Unsuccessful Insert"
 
 //POST hotdog, Mainpage
-func insertHotDog(aHotdog Hotdog) {
-	postedHotDog := aHotdog
+func insertHotDog(aHotdogs []Hotdog) {
+	postedHotDogs := aHotdogs
 
-	//Protections for the hotdog name
-	if strings.Compare(postedHotDog.HotDogType, "DEBUGTYPE") == 0 {
-		postedHotDog.HotDogType = "NONE"
+	for x := 0; x < len(aHotdogs); x++ {
+		stmt, err := db.Prepare("INSERT INTO hot_dogs(TYPE, CONDIMENT, CALORIES, NAME, USER_ID) VALUES(?,?,?,?,?)")
+		defer stmt.Close()
+
+		r, err := stmt.Exec(postedHotDogs[x].HotDogType, postedHotDogs[x].Condiment, postedHotDogs[x].Calories,
+			postedHotDogs[x].Name, postedHotDogs[x].UserID)
+		check(err)
+
+		n, err := r.RowsAffected()
+		check(err)
+
+		fmt.Printf("DEBUG: %v rows effected.\n", n)
 	}
-
-	stmt, err := db.Prepare("INSERT INTO hot_dogs(TYPE, CONDIMENT, CALORIES, NAME, USER_ID) VALUES(?,?,?,?,?)")
-	defer stmt.Close()
-
-	r, err := stmt.Exec(postedHotDog.HotDogType, postedHotDog.Condiment, postedHotDog.Calories, postedHotDog.Name, postedHotDog.UserID)
-	check(err)
-
-	n, err := r.RowsAffected()
-	check(err)
-
-	fmt.Printf("DEBUG: %v rows effected.\n", n)
-
-	if err != nil {
-		fmt.Println(failureMessage)
-	} else {
-		hDogMarshaled, err := json.Marshal(postedHotDog)
-		if err != nil {
-			fmt.Printf("Error with %v\n", hDogMarshaled)
-		}
-		hDogSuccessMSG := successMessage + string(hDogMarshaled)
-		fmt.Printf(hDogSuccessMSG)
-	}
-	//wg.Done() //Done with this wait group
 }
 
 //INSERT HOTDOG
-func insertHamburger(aBurger Hamburger) {
-	postedHamburger := aBurger
+func insertHamburgers(aBurgers []Hamburger) {
+	postedHamburgers := aBurgers
 
-	//Protections for the hamburger name
-	if strings.Compare(postedHamburger.BurgerType, "DEBUGTYPE") == 0 {
-		postedHamburger.BurgerType = "NONE"
+	for x := 0; x < len(postedHamburgers); x++ {
+		stmt, err := db.Prepare("INSERT INTO hamburgers(TYPE, CONDIMENT, CALORIES, NAME, USER_ID) VALUES(?,?,?,?,?)")
+		defer stmt.Close()
+
+		r, err := stmt.Exec(postedHamburgers[x].BurgerType, postedHamburgers[x].Condiment,
+			postedHamburgers[x].Calories, postedHamburgers[x].Name, postedHamburgers[x].UserID)
+		check(err)
+
+		n, err := r.RowsAffected()
+		check(err)
+		fmt.Printf("DEBUG: %v rows effected.\n", n)
 	}
-
-	fmt.Printf("DEBUG: HERE IS OUR postedHamburger: \n%v\n", postedHamburger)
-
-	stmt, err := db.Prepare("INSERT INTO hamburgers(TYPE, CONDIMENT, CALORIES, NAME, USER_ID) VALUES(?,?,?,?,?)")
-	defer stmt.Close()
-
-	r, err := stmt.Exec(postedHamburger.BurgerType, postedHamburger.Condiment,
-		postedHamburger.Calories, postedHamburger.Name, postedHamburger.UserID)
-	check(err)
-
-	n, err := r.RowsAffected()
-	check(err)
-
-	fmt.Printf("DEBUG: %v rows effected.\n", n)
-
-	if err != nil {
-		fmt.Printf(failureMessage)
-	} else {
-		hamMarshaled, err := json.Marshal(postedHamburger)
-		if err != nil {
-			fmt.Printf("Error with %v\n", hamMarshaled)
-		}
-		hamSuccessMSG := successMessage + string(hamMarshaled)
-		fmt.Println(hamSuccessMSG)
-	}
-	//wg.Done() //Done with wait group
 }
 
 //INSERT USER(s)
@@ -95,5 +61,6 @@ func insertUser(aUser User) {
 	n, err := r.RowsAffected()
 	check(err)
 
-	fmt.Printf("Inserted Record: %v\n", n)
+	fmt.Printf("Inserted User Record: %v\n", n)
+	wg.Done()
 }

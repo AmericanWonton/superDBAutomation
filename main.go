@@ -120,8 +120,9 @@ func main() {
 	fmt.Printf("OS: %v\n", runtime.GOOS)
 	fmt.Printf("ARCH: %v\n", runtime.GOARCH)
 	fmt.Printf("CPUs: %v\n", runtime.NumCPU())
-	wg.Add(2) //Need to add our wait groups for the program
-	userCreator()
+	wg.Add(14) //Need to add our wait groups for the program(should be three with main)
+	go discardFood()
+	go userCreator()
 	go swearUserRemoverHDog()
 	go swearUserRemoverHam()
 	fmt.Printf("Number of goRoutines: %v\n", runtime.NumGoroutine())
@@ -195,9 +196,10 @@ func userCreator() {
 			Role:     randomRole(),
 			UserID:   randomID(),
 		}
-		insertUser(newUser) //User inserted
+		go insertUser(newUser) //User inserted
 		//Give User some food
-		fmt.Printf("Giving this User some food: %v\n", newUser.UserID)
-		giveRandomFood(newUser.UserID)
+		fmt.Printf("Giving this User,(#%v) some food: %v\n", v+1, newUser.UserID)
+		go giveRandomFood(newUser.UserID)
 	}
+	wg.Done()
 }
