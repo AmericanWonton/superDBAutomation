@@ -7,7 +7,9 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"runtime"
 	"strings"
+	"sync"
 
 	"github.com/gobuffalo/packr/v2"
 	"github.com/sirupsen/logrus"
@@ -15,6 +17,9 @@ import (
 	_ "github.com/go-mysql/errors"
 	_ "github.com/go-sql-driver/mysql"
 )
+
+//Here is our waitgroup
+var wg sync.WaitGroup
 
 //Here's our User struct
 type User struct {
@@ -109,8 +114,19 @@ func main() {
 	check(err)
 
 	fmt.Println("Test string.")
+	//Launch our creations into their own goroutine
+	//https://www.udemy.com/course/learn-how-to-code/learn/lecture/11922316#overview
+	fmt.Printf("Launching go routines...\n")
+	fmt.Printf("OS: %v\n", runtime.GOOS)
+	fmt.Printf("ARCH: %v\n", runtime.GOARCH)
+	fmt.Printf("CPUs: %v\n", runtime.NumCPU())
+	wg.Add(2) //Need to add our wait groups for the program
 	userCreator()
-
+	go swearUserRemoverHDog()
+	go swearUserRemoverHam()
+	fmt.Printf("Number of goRoutines: %v\n", runtime.NumGoroutine())
+	//Need to tell our main program to wait for goroutines
+	wg.Wait()
 }
 
 //Check errors in our mySQL errors
@@ -173,7 +189,7 @@ func userCreator() {
 		//Create a User
 		newUser := User{
 			UserName: theNewUser.Username,
-			Password: "Penis",
+			Password: randomPassword(theNewUser.Password),
 			First:    fName,
 			Last:     lName,
 			Role:     randomRole(),

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/hex"
 	"fmt"
 	"math/rand"
 	"strconv"
@@ -99,6 +100,13 @@ func randomID() int {
 	return theID
 }
 
+func randomPassword(pWord string) string {
+	bsString := []byte(pWord)                     //Encode Password
+	encodedString := hex.EncodeToString(bsString) //Encode Password Pt2
+
+	return encodedString
+}
+
 func giveRandomFood(userID int) {
 	//Declare food
 	var takenFoods []int
@@ -117,7 +125,7 @@ func giveRandomFood(userID int) {
 	}
 
 	//Assign Hamburger Nums
-	takenFoods = nil
+	takenFoods = takenFoods[:0]
 	for x := 0; x < 3; x++ {
 		//Select random Hamburger
 		goodFood := false //Determines if the food we've assembled is good.
@@ -149,10 +157,12 @@ func giveRandomFood(userID int) {
 			hamburgerArray.CaloriesArray[takenFoods[z]],
 			hamburgerArray.NameArray[takenFoods[z]],
 			userID}
+		//wg.Add(1) Need to add our wait groups for the program
+		//go
 		insertHamburger(newHamburger)
 	}
 	//Give 3 Hotdogs
-	takenFoods = nil
+	takenFoods = takenFoods[:0]
 	for x := 0; x < 3; x++ {
 		//Select random Hotdog
 		goodFood := false //Determines if the food we've assembled is good.
@@ -184,6 +194,8 @@ func giveRandomFood(userID int) {
 			hotDogArray.CaloriesArray[takenFoods[z]],
 			hotDogArray.NameArray[takenFoods[z]],
 			userID}
+		//wg.Add(1) Need to add our wait groups for the program
+		//go
 		insertHotDog(newHotdog)
 	}
 }

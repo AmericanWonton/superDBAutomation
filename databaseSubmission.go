@@ -39,6 +39,7 @@ func insertHotDog(aHotdog Hotdog) {
 		hDogSuccessMSG := successMessage + string(hDogMarshaled)
 		fmt.Printf(hDogSuccessMSG)
 	}
+	//wg.Done() //Done with this wait group
 }
 
 //INSERT HOTDOG
@@ -74,6 +75,7 @@ func insertHamburger(aBurger Hamburger) {
 		hamSuccessMSG := successMessage + string(hamMarshaled)
 		fmt.Println(hamSuccessMSG)
 	}
+	//wg.Done() //Done with wait group
 }
 
 //INSERT USER(s)
