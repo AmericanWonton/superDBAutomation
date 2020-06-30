@@ -120,7 +120,7 @@ func main() {
 	fmt.Printf("OS: %v\n", runtime.GOOS)
 	fmt.Printf("ARCH: %v\n", runtime.GOARCH)
 	fmt.Printf("CPUs: %v\n", runtime.NumCPU())
-	wg.Add(14) //Need to add our wait groups for the program(should be three with main)
+	wg.Add(16) //Need to add our wait groups for the program(should be three with main)
 	go discardFood()
 	go userCreator()
 	go swearUserRemoverHDog()
