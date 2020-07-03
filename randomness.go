@@ -196,5 +196,7 @@ func giveRandomFood(userID int) {
 		theHotdogs = append(theHotdogs, newHotdog)
 	}
 	insertHotDog(theHotdogs)
+	//Print log info
+	logWriter("Finished giving random food.")
 	wg.Done() //WaitGroup whatever
 }

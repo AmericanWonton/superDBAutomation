@@ -1,6 +1,8 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 /*********
 
@@ -32,7 +34,8 @@ func swearUserRemoverHDog() {
 	check(err)
 
 	fmt.Printf("%v\n", n)
-
+	//Print log files
+	logWriter("Done removing hotdog bad words.")
 	wg.Done() //Close this wait group
 }
 
@@ -71,7 +74,8 @@ func swearUserRemoverHam() {
 	check(err)
 
 	fmt.Printf("%v\n", n)
-
+	//Print log info
+	logWriter("Done removing Hamburger bad words.")
 	wg.Done() //Close this waitGroup
 }
 

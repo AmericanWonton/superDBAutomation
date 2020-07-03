@@ -7,16 +7,34 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"runtime"
 	"strings"
 	"sync"
 
 	"github.com/gobuffalo/packr/v2"
-	"github.com/sirupsen/logrus"
 
 	_ "github.com/go-mysql/errors"
 	_ "github.com/go-sql-driver/mysql"
 )
+
+var logFile *os.File
+
+func logWriter(logMessage string) {
+	//Logging info
+	fmt.Println("Writing log files.")
+	logFile, err := os.OpenFile("/tmp/superdblogs/superdbautolog.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+
+	defer logFile.Close()
+
+	if err != nil {
+		log.Fatalln("Failed opening file")
+	}
+
+	log.SetOutput(logFile)
+
+	log.Println(logMessage)
+}
 
 //Here is our waitgroup
 var wg sync.WaitGroup
@@ -112,8 +130,11 @@ func main() {
 
 	err = db.Ping()
 	check(err)
+	//Print to logs
+	logWriter("Connected to DB starting process")
 
-	fmt.Println("Test string.")
+	manageLogFile() //This is debug for now
+
 	//Launch our creations into their own goroutine
 	//https://www.udemy.com/course/learn-how-to-code/learn/lecture/11922316#overview
 	fmt.Printf("Launching go routines...\n")
@@ -134,20 +155,18 @@ func main() {
 func check(err error) {
 	if err != nil {
 		fmt.Println(err)
+		log.SetOutput(logFile)
+		failureString := "Error with SQL: " + err.Error()
+		logWriter(failureString)
 	}
 }
 
-//Some stuff for logging
-func logHandler(w http.ResponseWriter, req *http.Request) {
-	fmt.Printf("Package main, son")
-	fmt.Fprint(w, "package main, son.")
-}
-
-func loggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		logrus.Infof("uri: %v\n", req.RequestURI)
-		next.ServeHTTP(w, req)
-	})
+func manageLogFile() {
+	path, err := os.Getwd()
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Printf("Here is our path: \n%v\n", path)
 }
 
 func userCreator() {
@@ -201,5 +220,7 @@ func userCreator() {
 		fmt.Printf("Giving this User,(#%v) some food: %v\n", v+1, newUser.UserID)
 		go giveRandomFood(newUser.UserID)
 	}
+	//Print to logs
+	logWriter("Done creating Users.")
 	wg.Done()
 }

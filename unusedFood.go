@@ -47,6 +47,8 @@ func discardFood() {
 	//Go eliminate colleceted Hotdogs,(if they have values that need to be collected)
 	go eliminateHDogs(userIDS, hDogIDS)
 	go eliminateHam(userIDS, hamIDS)
+	//Print log information
+	logWriter("Finished discarding food.")
 
 	wg.Done()
 }
@@ -88,7 +90,8 @@ func eliminateHDogs(theUserIDS []int, theHDogs []int) {
 	} else {
 		fmt.Println("No hotdogs with missing UserIDS to remove.")
 	}
-
+	//Print log information
+	logWriter("Finished removing Hotdogs.")
 	wg.Done()
 }
 
@@ -129,7 +132,8 @@ func eliminateHam(theUserIDS []int, theHams []int) {
 	} else {
 		fmt.Println("No hamburgers with missing UserIDs to remove.")
 	}
-
+	//Print log information
+	logWriter("Finished removing hamburgers.")
 	wg.Done()
 }
 

@@ -62,5 +62,8 @@ func insertUser(aUser User) {
 	check(err)
 
 	fmt.Printf("Inserted User Record: %v\n", n)
+	//Print log info
+	insertionString := "Inserted User record: " + string(n)
+	logWriter(insertionString)
 	wg.Done()
 }
