@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 )
 
 const successMessage string = "Successful Insert"
@@ -61,9 +62,31 @@ func insertUser(aUser User) {
 	n, err := r.RowsAffected()
 	check(err)
 
-	fmt.Printf("Inserted User Record: %v\n", n)
+	fmt.Printf("Inserted User Record for SQL: %v\n", n)
 	//Print log info
-	insertionString := "Inserted User record: " + string(n)
+	insertionString := "Inserted User record for SQL: " + string(n)
 	logWriter(insertionString)
+
+	//Now we insert everything for Mongo
+	//Add User to MongoDB
+	fmt.Printf("DEBUG: Adding User to MongoDB\n")
+	theTimeNow := time.Now()
+	var insertionUser AUser = AUser{
+		UserName:    postedUser.UserName,
+		Password:    postedUser.Password,
+		First:       postedUser.First,
+		Last:        postedUser.Last,
+		Role:        postedUser.Role,
+		UserID:      randomIDCreation(),
+		DateCreated: theTimeNow.Format("2006-01-02 15:04:05"),
+		DateUpdated: theTimeNow.Format("2006-01-02 15:04:05"),
+		Hotdogs:     MongoHotDogs{},
+		Hamburgers:  MongoHamburgers{},
+	}
+	insertionUsers := TheUsers{
+		Users: []AUser{insertionUser},
+	}
+	insertUsers(insertionUsers)
+
 	wg.Done()
 }

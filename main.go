@@ -13,6 +13,7 @@ import (
 	"sync"
 
 	"github.com/gobuffalo/packr/v2"
+	"go.mongodb.org/mongo-driver/mongo"
 
 	_ "github.com/go-mysql/errors"
 	_ "github.com/go-sql-driver/mysql"
@@ -106,6 +107,57 @@ type Hamburger struct {
 	UserID     int    `json:"UserID"` //User WHOMST this hotDog belongs to
 }
 
+/* Mongo No-SQL Variable Declarations */
+type AUser struct { //Using this for Mongo
+	UserName    string          `json:"UserName"`
+	Password    string          `json:"Password"` //This was formally a []byte but we are changing our code to fit the database better
+	First       string          `json:"First"`
+	Last        string          `json:"Last"`
+	Role        string          `json:"Role"`
+	UserID      int             `json:"UserID"`
+	DateCreated string          `json:"DateCreated"`
+	DateUpdated string          `json:"DateUpdated"`
+	Hotdogs     MongoHotDogs    `json:"Hotdogs"`
+	Hamburgers  MongoHamburgers `json:"Hamburgers"`
+}
+
+type TheUsers struct { //Using this for Mongo
+	Users []AUser `json:"Users"`
+}
+
+type MongoHotDog struct {
+	HotDogType  string   `json:"HotDogType"`
+	Condiments  []string `json:"Condiments"`
+	Calories    int      `json:"Calories"`
+	Name        string   `json:"Name"`
+	FoodID      int      `json:"FoodID"`
+	UserID      int      `json:"UserID"` //User WHOMST this hotDog belongs to
+	DateCreated string   `json:"DateCreated"`
+	DateUpdated string   `json:"DateUpdated"`
+}
+
+type MongoHotDogs struct {
+	Hotdogs []MongoHotDog `json:"Hotdogs"`
+}
+
+type MongoHamburger struct {
+	BurgerType  string   `json:"BurgerType"`
+	Condiments  []string `json:"Condiments"`
+	Calories    int      `json:"Calories"`
+	Name        string   `json:"Name"`
+	FoodID      int      `json:"FoodID"`
+	UserID      int      `json:"UserID"` //User WHOMST this hotDog belongs to
+	DateCreated string   `json:"DateCreated"`
+	DateUpdated string   `json:"DateUpdated"`
+}
+
+type MongoHamburgers struct {
+	Hamburgers []MongoHamburger `json:"Hamburgers"`
+}
+
+//Mongo DB Declarations
+var mongoClient *mongo.Client
+
 //mySQL database declarations
 var db *sql.DB
 var err error
@@ -131,7 +183,7 @@ func main() {
 	err = db.Ping()
 	check(err)
 	//Print to logs
-	logWriter("Connected to DB starting process")
+	logWriter("Connected to SQL DB starting process")
 
 	manageLogFile() //This is debug for now
 
@@ -141,7 +193,8 @@ func main() {
 	fmt.Printf("OS: %v\n", runtime.GOOS)
 	fmt.Printf("ARCH: %v\n", runtime.GOARCH)
 	fmt.Printf("CPUs: %v\n", runtime.NumCPU())
-	wg.Add(16) //Need to add our wait groups for the program(should be three with main)
+	wg.Add(17) //Need to add our wait groups for the program(should be three with main)
+	go manageLogFile()
 	go discardFood()
 	go userCreator()
 	go swearUserRemoverHDog()
@@ -167,6 +220,7 @@ func manageLogFile() {
 		fmt.Println(err)
 	}
 	fmt.Printf("Here is our path: \n%v\n", path)
+	wg.Done()
 }
 
 func userCreator() {

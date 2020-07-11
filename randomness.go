@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
+	"time"
 
 	_ "github.com/go-mysql/errors"
 	_ "github.com/go-sql-driver/mysql"
@@ -197,6 +198,42 @@ func giveRandomFood(userID int) {
 	}
 	insertHotDog(theHotdogs)
 	//Print log info
-	logWriter("Finished giving random food.")
+	logWriter("Finished giving random food for SQL.")
+
+	//Give Food for Mongo DB as well
+	var insertHotDogs MongoHotDogs
+	var insertHamburgers MongoHamburgers
+	//Put previous Hotdog/Hamburgers into "MongoHotdog/Hamburger"
+	for i := 0; i < len(theHotdogs); i++ {
+		theTimeNow := time.Now()
+		newMongoDog := MongoHotDog{
+			HotDogType:  theHotdogs[i].HotDogType,
+			Condiments:  []string{theHotdogs[i].Condiment},
+			Name:        theHotdogs[i].Name,
+			FoodID:      randomIDCreation(),
+			UserID:      theHotdogs[i].UserID,
+			DateCreated: theTimeNow.Format("2006-01-02 15:04:05"),
+			DateUpdated: theTimeNow.Format("2006-01-02 15:04:05"),
+		}
+		insertHotDogs.Hotdogs = append(insertHotDogs.Hotdogs, newMongoDog)
+	} //For Hotdogs
+	for p := 0; p < len(theHamburgers); p++ {
+		theTimeNow := time.Now()
+		newMongoHamb := MongoHamburger{
+			BurgerType:  theHotdogs[p].HotDogType,
+			Condiments:  []string{theHotdogs[p].Condiment},
+			Name:        theHotdogs[p].Name,
+			FoodID:      randomIDCreation(),
+			UserID:      theHotdogs[p].UserID,
+			DateCreated: theTimeNow.Format("2006-01-02 15:04:05"),
+			DateUpdated: theTimeNow.Format("2006-01-02 15:04:05"),
+		}
+		insertHamburgers.Hamburgers = append(insertHamburgers.Hamburgers, newMongoHamb)
+	}
+	//InsertHotdog/Hamburgers
+	insertHotDogsMongo(insertHotDogs)
+	insertHamburgersMongo(insertHamburgers)
+	logWriter("Finished giving random food for Mongo.")
+
 	wg.Done() //WaitGroup whatever
 }

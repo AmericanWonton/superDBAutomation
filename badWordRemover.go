@@ -35,7 +35,11 @@ func swearUserRemoverHDog() {
 
 	fmt.Printf("%v\n", n)
 	//Print log files
-	logWriter("Done removing hotdog bad words.")
+	logWriter("Done removing hotdog bad words for SQL.")
+
+	//Delete Records for Mongo
+	foodDeleteMongo(1, slurs) //1 for deleting Hotdogs
+	logWriter("Done removing hotdog bad words for Mongo.")
 	wg.Done() //Close this wait group
 }
 
@@ -76,6 +80,10 @@ func swearUserRemoverHam() {
 	fmt.Printf("%v\n", n)
 	//Print log info
 	logWriter("Done removing Hamburger bad words.")
+
+	//Delete Records for Mongo
+	foodDeleteMongo(2, slurs) //2 for deleting Hamburgers
+	logWriter("Done removing Hamburger bad words for Mongo.")
 	wg.Done() //Close this waitGroup
 }
 
