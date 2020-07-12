@@ -51,6 +51,7 @@ func connectDB() *mongo.Client {
 
 func insertUsers(pileOUser TheUsers) {
 	//test Check Mongo Client
+	fmt.Println("Pinging Mongo client")
 	err = mongoClient.Ping(theContext, readpref.Primary())
 	if err != nil {
 		fmt.Printf("Errored pinging MongoDB: %v\n", err)

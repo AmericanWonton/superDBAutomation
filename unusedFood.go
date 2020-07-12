@@ -45,12 +45,12 @@ func discardFood() {
 		hamIDS = append(hamIDS, aFoodID)
 	}
 	//Go eliminate colleceted Hotdogs,(if they have values that need to be collected)
-	go eliminateHDogs(userIDS, hDogIDS)
-	go eliminateHam(userIDS, hamIDS)
+	//go eliminateHDogs(userIDS, hDogIDS)
+	//go eliminateHam(userIDS, hamIDS)
+	eliminateHDogs(userIDS, hDogIDS)
+	eliminateHam(userIDS, hamIDS)
 	//Print log information
 	logWriter("Finished discarding food.")
-
-	wg.Done()
 }
 
 func eliminateHDogs(theUserIDS []int, theHDogs []int) {
@@ -92,7 +92,6 @@ func eliminateHDogs(theUserIDS []int, theHDogs []int) {
 	}
 	//Print log information
 	logWriter("Finished removing Hotdogs.")
-	wg.Done()
 }
 
 func eliminateHam(theUserIDS []int, theHams []int) {
@@ -134,7 +133,6 @@ func eliminateHam(theUserIDS []int, theHams []int) {
 	}
 	//Print log information
 	logWriter("Finished removing hamburgers.")
-	wg.Done()
 }
 
 //If ID is not found in user table, remove from the food table

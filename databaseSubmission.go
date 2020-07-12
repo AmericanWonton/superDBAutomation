@@ -30,7 +30,6 @@ func insertHotDog(aHotdogs []Hotdog) {
 //INSERT HOTDOG
 func insertHamburgers(aBurgers []Hamburger) {
 	postedHamburgers := aBurgers
-
 	for x := 0; x < len(postedHamburgers); x++ {
 		stmt, err := db.Prepare("INSERT INTO hamburgers(TYPE, CONDIMENT, CALORIES, NAME, USER_ID) VALUES(?,?,?,?,?)")
 		defer stmt.Close()
@@ -47,7 +46,7 @@ func insertHamburgers(aBurgers []Hamburger) {
 
 //INSERT USER(s)
 func insertUser(aUser User) {
-
+	defer wg.Done() //For Wait Group
 	//Marshal it into our type
 	postedUser := aUser
 
@@ -87,6 +86,4 @@ func insertUser(aUser User) {
 		Users: []AUser{insertionUser},
 	}
 	insertUsers(insertionUsers)
-
-	wg.Done()
 }

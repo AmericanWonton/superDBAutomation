@@ -23,18 +23,20 @@ var logFile *os.File
 
 func logWriter(logMessage string) {
 	//Logging info
-	fmt.Println("Writing log files.")
-	logFile, err := os.OpenFile("/tmp/superdblogs/superdbautolog.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	/*
+		fmt.Println("Writing log files.")
+		logFile, err := os.OpenFile("/logging/superdbautolog.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 
-	defer logFile.Close()
+		defer logFile.Close()
 
-	if err != nil {
-		log.Fatalln("Failed opening file")
-	}
+		if err != nil {
+			log.Fatalln("Failed opening file")
+		}
 
-	log.SetOutput(logFile)
+		log.SetOutput(logFile)
 
-	log.Println(logMessage)
+		log.Println(logMessage)
+	*/
 }
 
 //Here is our waitgroup
@@ -193,12 +195,16 @@ func main() {
 	fmt.Printf("OS: %v\n", runtime.GOOS)
 	fmt.Printf("ARCH: %v\n", runtime.GOARCH)
 	fmt.Printf("CPUs: %v\n", runtime.NumCPU())
-	wg.Add(17) //Need to add our wait groups for the program(should be three with main)
-	go manageLogFile()
-	go discardFood()
+	//wg.Add(17) Need to add our wait groups for the program(should be three with main)
+	/*
+		go manageLogFile()
+		go discardFood()
+		go userCreator()
+		go swearUserRemoverHDog()
+		go swearUserRemoverHam()
+	*/
+	wg.Add(1)
 	go userCreator()
-	go swearUserRemoverHDog()
-	go swearUserRemoverHam()
 	fmt.Printf("Number of goRoutines: %v\n", runtime.NumGoroutine())
 	//Need to tell our main program to wait for goroutines
 	wg.Wait()
@@ -220,10 +226,10 @@ func manageLogFile() {
 		fmt.Println(err)
 	}
 	fmt.Printf("Here is our path: \n%v\n", path)
-	wg.Done()
 }
 
 func userCreator() {
+	defer wg.Done() //For Wait Group
 	fmt.Println("Making random Users.")
 
 	url := "https://api.namefake.com"
@@ -269,6 +275,7 @@ func userCreator() {
 			Role:     randomRole(),
 			UserID:   randomID(),
 		}
+		wg.Add(2)
 		go insertUser(newUser) //User inserted
 		//Give User some food
 		fmt.Printf("Giving this User,(#%v) some food: %v\n", v+1, newUser.UserID)
@@ -276,5 +283,4 @@ func userCreator() {
 	}
 	//Print to logs
 	logWriter("Done creating Users.")
-	wg.Done()
 }

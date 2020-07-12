@@ -109,6 +109,7 @@ func randomPassword(pWord string) string {
 }
 
 func giveRandomFood(userID int) {
+	defer wg.Done() //For WaitGroup
 	//Declare food
 	var takenFoods []int
 	hotDogArray := randomHotDog{
@@ -234,6 +235,4 @@ func giveRandomFood(userID int) {
 	insertHotDogsMongo(insertHotDogs)
 	insertHamburgersMongo(insertHamburgers)
 	logWriter("Finished giving random food for Mongo.")
-
-	wg.Done() //WaitGroup whatever
 }
