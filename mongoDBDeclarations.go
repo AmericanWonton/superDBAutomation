@@ -49,7 +49,7 @@ func connectDB() *mongo.Client {
 	return theClient
 }
 
-func insertUsers(pileOUser TheUsers) {
+func insertUsersMongo(pileOUser TheUsers) {
 	//test Check Mongo Client
 	fmt.Println("Pinging Mongo client")
 	err = mongoClient.Ping(theContext, readpref.Primary())
@@ -76,20 +76,24 @@ func insertUsers(pileOUser TheUsers) {
 	fmt.Println("Inserted multiple documents for Mongo: ", insertManyResult.InsertedIDs) //Data insert results
 }
 
-func insertHotDogsMongo(postedHotDogs MongoHotDogs) {
-	//Insert Hotdogs with queries for Mongo
-	hotdog_collection := mongoClient.Database("superdbtest1").Collection("hotdogs") //Here's our collection
-	collectedHDogs := []interface{}{}
-	for x := 0; x < len(postedHotDogs.Hotdogs); x++ {
-		collectedHDogs = append(collectedHDogs, postedHotDogs.Hotdogs[x])
-	}
-	//Insert Our Data
-	insertManyResult, err := hotdog_collection.InsertMany(context.TODO(), collectedHDogs)
+func updateUserMongo(theUser AUser) {
+	//defer wg.Done() //used for waitgroup
+	userCollection := mongoClient.Database("superdbtest1").Collection("users")
+	theFilter := bson.M{"userid": theUser.UserID}
+
+	result, err := userCollection.ReplaceOne(theContext, theFilter, theUser)
 	if err != nil {
-		fmt.Printf("Error inserting results: \n%v\n", err)
+		fmt.Printf("Error updating User document: %v\n", err)
 		log.Fatal(err)
+	} else {
+		fmt.Printf("Updated user, %v,  here is the result: %v\n", theUser.UserID, result)
 	}
-	fmt.Println("Inserted multiple documents: ", insertManyResult.InsertedIDs) //Data insert results
+}
+
+func insertHotDogsMongo(postedHotDogs MongoHotDogs) {
+	//defer wg.Done() //Used for waitgroup
+	//Insert Hotdogs with queries for Mongo
+	fmt.Printf("DEBUG: NO INSERTION FOR HOTDOGS COLLECTION YET\n")
 }
 
 func insertHotDogMongo(w http.ResponseWriter, req *http.Request) {
@@ -138,19 +142,10 @@ func insertHotDogMongo(w http.ResponseWriter, req *http.Request) {
 }
 
 func insertHamburgersMongo(postedHamburgers MongoHamburgers) {
+	//defer wg.Done() //Used for waitgroup
 	//Insert Food records with MongoSQl
-	hamburger_collection := mongoClient.Database("superdbtest1").Collection("hamburgers") //Here's our collection
-	collectedHamburgers := []interface{}{}
-	for x := 0; x < len(postedHamburgers.Hamburgers); x++ {
-		collectedHamburgers = append(collectedHamburgers, postedHamburgers.Hamburgers[x])
-	}
-	//Insert Our Data
-	insertManyResult, err := hamburger_collection.InsertMany(context.TODO(), collectedHamburgers)
-	if err != nil {
-		fmt.Printf("Error inserting results: \n%v\n", err)
-		log.Fatal(err)
-	}
-	fmt.Println("Inserted multiple documents: ", insertManyResult.InsertedIDs) //Data insert results
+	//theTimeNow := time.Now()
+	fmt.Printf("DEBUG: NO REAL INSERTION TO HAMBURGER COLLECTION YET\n")
 }
 
 func insertHamburgerMongo(w http.ResponseWriter, req *http.Request) {
@@ -366,11 +361,42 @@ func foodDeleteMongo(whichFoods int, foodSlurs []string) {
 	} else {
 		logWriter("Error, 'whichFoods' is not 1 or two. No food records deleted from Mongo")
 	}
+	wg.Done() //Used to close wait group
+}
+
+//DEBUG: MAYBE SHOULD STEAL CODE FROM foodDeleteMongo
+func foodDeleteUnusedMongo(whichFood int, theIDS []int) {
+	if whichFood == 1 {
+		hotdog_collection := mongoClient.Database("superdbtest1").Collection("hotdogs") //Here's our collection
+		for y := 0; y < len(theIDS); y++ {
+			_, err := hotdog_collection.DeleteMany(context.TODO(), bson.M{"userid": bson.M{"": theIDS[y]}})
+			if err != nil {
+				fmt.Printf("There was an error deleting hotdogs: %v\n", err)
+				log.Fatal(err)
+			} else {
+
+			}
+		}
+	} else if whichFood == 2 {
+		hamburger_collection := mongoClient.Database("superdbtest1").Collection("hamburgers") //Here's our collection
+		for y := 0; y < len(theIDS); y++ {
+			_, err := hamburger_collection.DeleteMany(context.TODO(), bson.M{"userid": theIDS[y]})
+			if err != nil {
+				fmt.Printf("There was an error deleting hamburgers: %v\n", err)
+				log.Fatal(err)
+			} else {
+
+			}
+		}
+	} else {
+		fmt.Printf("Wrong data entry for deleting hotdogs.\n")
+		logWriter("Wrong data entry for deleting hotdogs.")
+	}
+	wg.Done() //Used for closing waitgroup
 }
 
 //This should give a random id value to both food groups
 func randomIDCreation() int {
-	fmt.Printf("DEBUG: Creating Random ID for User/Food\n")
 	finalID := 0        //The final, unique ID to return to the food/user
 	randInt := 0        //The random integer added onto ID
 	randIntString := "" //The integer built through a string...
@@ -389,12 +415,12 @@ func randomIDCreation() int {
 		}
 		//Search all our collections to see if this UserID is unique
 		canExit := true
-		user_collection := mongoClient.Database("superdbtest1").Collection("users") //Here's our collection
 		var testAUser AUser
-		theErr := user_collection.FindOne(context.TODO(), bson.M{"userid": theID}).Decode(&testAUser)
+		userCollection := mongoClient.Database("superdbtest1").Collection("user") //Here's our collection
+		theErr := userCollection.FindOne(context.TODO(), bson.M{"userid": theID}).Decode(&testAUser)
 		if theErr != nil {
 			if strings.Contains(theErr.Error(), "no documents in result") {
-				fmt.Printf("It's all good, this document wasn't found for User and our ID is clean.\n")
+				//Document not found, it's good
 			} else {
 				fmt.Printf("DEBUG: We have another error for finding a unique UserID: \n%v\n", theErr)
 				canExit = false

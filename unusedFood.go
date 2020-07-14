@@ -14,7 +14,7 @@ func discardFood() {
 	stmt := "SELECT USER_ID from users"
 	row, err := db.Query(stmt)
 	check(err)
-	defer row.Close()
+
 	//Put query results into userIDS
 	var anID int
 	for row.Next() {
@@ -22,6 +22,7 @@ func discardFood() {
 		check(err)
 		userIDS = append(userIDS, anID)
 	}
+	row.Close()
 	//Collect all food IDs
 	var hDogIDS []int
 	var hamIDS []int
@@ -29,38 +30,44 @@ func discardFood() {
 	hDogStmt := "SELECT USER_ID FROM hot_dogs"
 	hrow, err := db.Query(hDogStmt)
 	check(err)
-	defer hrow.Close()
 	for hrow.Next() {
 		err = hrow.Scan(&aFoodID)
 		check(err)
 		hDogIDS = append(hDogIDS, aFoodID)
 	}
+	hrow.Close()
 	hamStmt := "SELECT USER_ID FROM hamburgers"
 	hamrow, err := db.Query(hamStmt)
 	check(err)
-	defer hamrow.Close()
 	for hamrow.Next() {
 		err = hamrow.Scan(&aFoodID)
 		check(err)
 		hamIDS = append(hamIDS, aFoodID)
 	}
+	hamrow.Close()
 	//Go eliminate colleceted Hotdogs,(if they have values that need to be collected)
 	//go eliminateHDogs(userIDS, hDogIDS)
 	//go eliminateHam(userIDS, hamIDS)
-	eliminateHDogs(userIDS, hDogIDS)
-	eliminateHam(userIDS, hamIDS)
+	wg.Add(1)
+	go eliminateHDogs(userIDS, hDogIDS)
+	wg.Add(1)
+	go eliminateHam(userIDS, hamIDS)
 	//Print log information
+	fmt.Println("DEBUG: Finished discarding food in SQL")
 	logWriter("Finished discarding food.")
+	wg.Done()
 }
 
 func eliminateHDogs(theUserIDS []int, theHDogs []int) {
 	theQuery := ""      //A query to be built for eliminating food with no user.
 	foundValue := false //If true, we can run a query
+	var allIDS []int
 	for z := 0; z < len(theHDogs); z++ {
 		foundUser := findID(theUserIDS, theHDogs[z])
 		if foundUser == true {
 			//Do nothing, it's got a user
 		} else {
+			allIDS = append(allIDS, theHDogs[z])
 			foundValue = true //Needed to have this query run with values inside it
 			//For first pass to build query
 			if z == 0 {
@@ -78,8 +85,6 @@ func eliminateHDogs(theUserIDS []int, theHDogs []int) {
 		delH, err := db.Prepare(theQuery)
 		check(err)
 
-		fmt.Printf("Here is the query we shall run to get rid of hotdogs: \n\n%v\n\n", theQuery)
-
 		r, err := delH.Exec()
 		check(err)
 
@@ -90,11 +95,18 @@ func eliminateHDogs(theUserIDS []int, theHDogs []int) {
 	} else {
 		fmt.Println("No hotdogs with missing UserIDS to remove.")
 	}
-	//Print log information
-	logWriter("Finished removing Hotdogs.")
+	//Print log information for SQL
+	logWriter("Finished removing Hotdogs in SQL.")
+	//Remove values for Mongo
+	wg.Add(1)
+	go foodDeleteUnusedMongo(1, allIDS) //Delete HotDog Collection IDS
+	fmt.Printf("Finished removing Unused Hotdogs in Mongo\n")
+	logWriter("Finished removing Hotdogs in Mongo.")
+	wg.Done() //Used for waitgroup
 }
 
 func eliminateHam(theUserIDS []int, theHams []int) {
+	var allIDS []int
 	theQuery := ""      //A query to be built for eliminating food with no user.
 	foundValue := false //If true, we can run a query
 	for z := 0; z < len(theHams); z++ {
@@ -102,6 +114,7 @@ func eliminateHam(theUserIDS []int, theHams []int) {
 		if foundUser == true {
 			//Do nothing, it's got a user
 		} else {
+			allIDS = append(allIDS, theHams[z])
 			foundValue = true //Needed to have this query run with values inside it
 			//For first pass to build query
 			if z == 0 {
@@ -132,7 +145,12 @@ func eliminateHam(theUserIDS []int, theHams []int) {
 		fmt.Println("No hamburgers with missing UserIDs to remove.")
 	}
 	//Print log information
-	logWriter("Finished removing hamburgers.")
+	logWriter("Finished removing hamburgers for SQL.")
+	//Remove Hamburgers for Mongo
+	wg.Add(1)
+	go foodDeleteUnusedMongo(2, allIDS) //Delete HotDog Collection IDS
+	logWriter("Finished removing Hamburgers in Mongo.")
+	wg.Done()
 }
 
 //If ID is not found in user table, remove from the food table

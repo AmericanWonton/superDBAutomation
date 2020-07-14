@@ -63,7 +63,7 @@ func randomID() int {
 		//Query the database for all IDS
 		row, err := db.Query(`SELECT user_id FROM users;`)
 		check(err)
-		defer row.Close()
+
 		//Build the random, unique integer to be assigned to this User
 		goodNumFound := true //A second checker to break this loop
 		randInt := 0         //The random integer added onto ID
@@ -90,6 +90,7 @@ func randomID() int {
 
 			}
 		}
+		row.Close()
 		//Final check to see if we need to go through this loop again
 		if goodNumFound == false {
 			goodNum = false
@@ -108,8 +109,7 @@ func randomPassword(pWord string) string {
 	return encodedString
 }
 
-func giveRandomFood(userID int) {
-	defer wg.Done() //For WaitGroup
+func giveRandomFood(userID int, newUser AUser) {
 	//Declare food
 	var takenFoods []int
 	hotDogArray := randomHotDog{
@@ -161,6 +161,7 @@ func giveRandomFood(userID int) {
 			userID}
 		theHamburgers = append(theHamburgers, newHamburger)
 	}
+
 	insertHamburgers(theHamburgers)
 	//Assign Hotdog Nums
 	takenFoods = takenFoods[:0]
@@ -197,7 +198,8 @@ func giveRandomFood(userID int) {
 			userID}
 		theHotdogs = append(theHotdogs, newHotdog)
 	}
-	insertHotDog(theHotdogs)
+
+	insertHotDogs(theHotdogs)
 	//Print log info
 	logWriter("Finished giving random food for SQL.")
 
@@ -231,8 +233,19 @@ func giveRandomFood(userID int) {
 		}
 		insertHamburgers.Hamburgers = append(insertHamburgers.Hamburgers, newMongoHamb)
 	}
-	//InsertHotdog/Hamburgers
+	//give newUser the food to update in Mongo
+	newUser.Hotdogs = insertHotDogs
+	newUser.Hamburgers = insertHamburgers
+	//InsertHotdog/Hamburgers for Mongo
+	//wg.Add(1)
+	//go updateUserMongo(newUser)
+	updateUserMongo(newUser)
+	//wg.Add(1)
+	//go insertHotDogsMongo(insertHotDogs)
 	insertHotDogsMongo(insertHotDogs)
+	//wg.Add(1)
+	//go insertHamburgersMongo(insertHamburgers)
 	insertHamburgersMongo(insertHamburgers)
 	logWriter("Finished giving random food for Mongo.")
+	wg.Done() //Used for wait group
 }

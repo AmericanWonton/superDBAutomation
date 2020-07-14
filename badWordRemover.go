@@ -38,8 +38,10 @@ func swearUserRemoverHDog() {
 	logWriter("Done removing hotdog bad words for SQL.")
 
 	//Delete Records for Mongo
-	foodDeleteMongo(1, slurs) //1 for deleting Hotdogs
+	wg.Add(1)
+	go foodDeleteMongo(1, slurs) //1 for deleting Hotdogs
 	logWriter("Done removing hotdog bad words for Mongo.")
+	wg.Done()
 }
 
 func buildQueryHDog() string {
@@ -81,8 +83,10 @@ func swearUserRemoverHam() {
 	logWriter("Done removing Hamburger bad words.")
 
 	//Delete Records for Mongo
-	foodDeleteMongo(2, slurs) //2 for deleting Hamburgers
+	wg.Add(1)
+	go foodDeleteMongo(2, slurs) //2 for deleting Hamburgers
 	logWriter("Done removing Hamburger bad words for Mongo.")
+	wg.Done()
 }
 
 func buildQueryHam() string {

@@ -180,12 +180,16 @@ func main() {
 	db, err = sql.Open("mysql",
 		"joek1:fartghookthestrong69@tcp(food-database.cd8ujtto1hfj.us-east-2.rds.amazonaws.com)/food-database-schema?charset=utf8")
 	check(err)
+	//db.SetMaxOpenConns(1) //Needed for DB
 	defer db.Close()
 
 	err = db.Ping()
 	check(err)
 	//Print to logs
 	logWriter("Connected to SQL DB starting process")
+
+	//Connect to MongoDB
+	mongoClient = connectDB()
 
 	manageLogFile() //This is debug for now
 
@@ -195,16 +199,20 @@ func main() {
 	fmt.Printf("OS: %v\n", runtime.GOOS)
 	fmt.Printf("ARCH: %v\n", runtime.GOARCH)
 	fmt.Printf("CPUs: %v\n", runtime.NumCPU())
-	//wg.Add(17) Need to add our wait groups for the program(should be three with main)
 	/*
+		wg.Add(1)
 		go manageLogFile()
-		go discardFood()
-		go userCreator()
-		go swearUserRemoverHDog()
+	*/
+	/*
+		wg.Add(1)
 		go swearUserRemoverHam()
+		wg.Add(1)
+		go swearUserRemoverHDog()
 	*/
 	wg.Add(1)
 	go userCreator()
+	wg.Add(1)
+	go discardFood()
 	fmt.Printf("Number of goRoutines: %v\n", runtime.NumGoroutine())
 	//Need to tell our main program to wait for goroutines
 	wg.Wait()
@@ -213,11 +221,12 @@ func main() {
 //Check errors in our mySQL errors
 func check(err error) {
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("Error in SQLDB: \n%v\n", err.Error())
 		log.SetOutput(logFile)
 		failureString := "Error with SQL: " + err.Error()
 		logWriter(failureString)
 	}
+	wg.Done()
 }
 
 func manageLogFile() {
@@ -226,16 +235,18 @@ func manageLogFile() {
 		fmt.Println(err)
 	}
 	fmt.Printf("Here is our path: \n%v\n", path)
+	//wg.Done()
 }
 
 func userCreator() {
-	defer wg.Done() //For Wait Group
 	fmt.Println("Making random Users.")
+	var theUsers []User
 
 	url := "https://api.namefake.com"
 	method := "GET"
 	//Make 5 Users
 	for v := 0; v < 5; v++ {
+		fmt.Printf("DEBUG: Starting to append a user.\n")
 		client := &http.Client{}
 		req, err := http.NewRequest(method, url, nil)
 
@@ -275,12 +286,13 @@ func userCreator() {
 			Role:     randomRole(),
 			UserID:   randomID(),
 		}
-		wg.Add(2)
-		go insertUser(newUser) //User inserted
-		//Give User some food
-		fmt.Printf("Giving this User,(#%v) some food: %v\n", v+1, newUser.UserID)
-		go giveRandomFood(newUser.UserID)
+		theUsers = append(theUsers, newUser)
+		fmt.Printf("DEBUG: Here is our newUser: %v\n", newUser)
 	}
+	//Go give Users food
+	fmt.Printf("DEBUG: Users made, inserting Users.\n")
+	insertUsers(theUsers) //User inserted
 	//Print to logs
 	logWriter("Done creating Users.")
+	wg.Done() //For Wait Group
 }
