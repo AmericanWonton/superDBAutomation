@@ -77,7 +77,6 @@ func insertUsersMongo(pileOUser TheUsers) {
 }
 
 func updateUserMongo(theUser AUser) {
-	//defer wg.Done() //used for waitgroup
 	userCollection := mongoClient.Database("superdbtest1").Collection("users")
 	theFilter := bson.M{"userid": theUser.UserID}
 
@@ -91,9 +90,18 @@ func updateUserMongo(theUser AUser) {
 }
 
 func insertHotDogsMongo(postedHotDogs MongoHotDogs) {
-	//defer wg.Done() //Used for waitgroup
-	//Insert Hotdogs with queries for Mongo
-	fmt.Printf("DEBUG: NO INSERTION FOR HOTDOGS COLLECTION YET\n")
+	//Insert Food records with MongoSQl
+	hamburger_collection := mongoClient.Database("superdbtest1").Collection("hotdogs") //Here's our collection
+	theHotDogs := []interface{}{}
+	for j := 0; j < len(postedHotDogs.Hotdogs); j++ {
+		theHotDogs = append(theHotDogs, postedHotDogs.Hotdogs[j])
+	}
+	insertManyResult, err := hamburger_collection.InsertMany(context.TODO(), theHotDogs)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Inserted multiple documents: ", insertManyResult.InsertedIDs) //Data insert results
+	fmt.Printf("DEBUG: NO REAL INSERTION TO HAMBURGER COLLECTION YET\n")
 }
 
 func insertHotDogMongo(w http.ResponseWriter, req *http.Request) {
@@ -142,10 +150,17 @@ func insertHotDogMongo(w http.ResponseWriter, req *http.Request) {
 }
 
 func insertHamburgersMongo(postedHamburgers MongoHamburgers) {
-	//defer wg.Done() //Used for waitgroup
 	//Insert Food records with MongoSQl
-	//theTimeNow := time.Now()
-	fmt.Printf("DEBUG: NO REAL INSERTION TO HAMBURGER COLLECTION YET\n")
+	hamburger_collection := mongoClient.Database("superdbtest1").Collection("hamburgers") //Here's our collection
+	theHamburgers := []interface{}{}
+	for j := 0; j < len(postedHamburgers.Hamburgers); j++ {
+		theHamburgers = append(theHamburgers, postedHamburgers.Hamburgers[j])
+	}
+	insertManyResult, err := hamburger_collection.InsertMany(context.TODO(), theHamburgers)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Inserted multiple documents: ", insertManyResult.InsertedIDs) //Data insert results
 }
 
 func insertHamburgerMongo(w http.ResponseWriter, req *http.Request) {
@@ -361,7 +376,6 @@ func foodDeleteMongo(whichFoods int, foodSlurs []string) {
 	} else {
 		logWriter("Error, 'whichFoods' is not 1 or two. No food records deleted from Mongo")
 	}
-	wg.Done() //Used to close wait group
 }
 
 //DEBUG: MAYBE SHOULD STEAL CODE FROM foodDeleteMongo
@@ -392,7 +406,6 @@ func foodDeleteUnusedMongo(whichFood int, theIDS []int) {
 		fmt.Printf("Wrong data entry for deleting hotdogs.\n")
 		logWriter("Wrong data entry for deleting hotdogs.")
 	}
-	wg.Done() //Used for closing waitgroup
 }
 
 //This should give a random id value to both food groups

@@ -191,29 +191,19 @@ func main() {
 	//Connect to MongoDB
 	mongoClient = connectDB()
 
-	manageLogFile() //This is debug for now
-
 	//Launch our creations into their own goroutine
 	//https://www.udemy.com/course/learn-how-to-code/learn/lecture/11922316#overview
 	fmt.Printf("Launching go routines...\n")
 	fmt.Printf("OS: %v\n", runtime.GOOS)
 	fmt.Printf("ARCH: %v\n", runtime.GOARCH)
 	fmt.Printf("CPUs: %v\n", runtime.NumCPU())
-	/*
-		wg.Add(1)
-		go manageLogFile()
-	*/
-	/*
-		wg.Add(1)
-		go swearUserRemoverHam()
-		wg.Add(1)
-		go swearUserRemoverHDog()
-	*/
+
+	fmt.Printf("Number of goRoutines: %v\n", runtime.NumGoroutine())
+	//Here's our GoRoutines
+	wg.Add(1)
+	go manageLogFile() //Go routine1
 	wg.Add(1)
 	go userCreator()
-	wg.Add(1)
-	go discardFood()
-	fmt.Printf("Number of goRoutines: %v\n", runtime.NumGoroutine())
 	//Need to tell our main program to wait for goroutines
 	wg.Wait()
 }
@@ -226,7 +216,6 @@ func check(err error) {
 		failureString := "Error with SQL: " + err.Error()
 		logWriter(failureString)
 	}
-	wg.Done()
 }
 
 func manageLogFile() {
@@ -235,7 +224,8 @@ func manageLogFile() {
 		fmt.Println(err)
 	}
 	fmt.Printf("Here is our path: \n%v\n", path)
-	//wg.Done()
+	wg.Done()
+
 }
 
 func userCreator() {
@@ -294,5 +284,5 @@ func userCreator() {
 	insertUsers(theUsers) //User inserted
 	//Print to logs
 	logWriter("Done creating Users.")
-	wg.Done() //For Wait Group
+	wg.Done()
 }

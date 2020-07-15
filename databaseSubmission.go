@@ -95,7 +95,6 @@ func insertUsers(theUsers []User) {
 
 	//Give Users random food
 	for q := 0; q < len(insertionUsers.Users); q++ {
-		wg.Add(1)
-		go giveRandomFood(insertionUsers.Users[q].UserID, insertionUsers.Users[q])
+		giveRandomFood(insertionUsers.Users[q].UserID, insertionUsers.Users[q])
 	}
 }

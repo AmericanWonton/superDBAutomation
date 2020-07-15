@@ -46,16 +46,11 @@ func discardFood() {
 	}
 	hamrow.Close()
 	//Go eliminate colleceted Hotdogs,(if they have values that need to be collected)
-	//go eliminateHDogs(userIDS, hDogIDS)
-	//go eliminateHam(userIDS, hamIDS)
-	wg.Add(1)
-	go eliminateHDogs(userIDS, hDogIDS)
-	wg.Add(1)
-	go eliminateHam(userIDS, hamIDS)
+	eliminateHDogs(userIDS, hDogIDS)
+	eliminateHam(userIDS, hamIDS)
 	//Print log information
 	fmt.Println("DEBUG: Finished discarding food in SQL")
 	logWriter("Finished discarding food.")
-	wg.Done()
 }
 
 func eliminateHDogs(theUserIDS []int, theHDogs []int) {
@@ -98,11 +93,9 @@ func eliminateHDogs(theUserIDS []int, theHDogs []int) {
 	//Print log information for SQL
 	logWriter("Finished removing Hotdogs in SQL.")
 	//Remove values for Mongo
-	wg.Add(1)
-	go foodDeleteUnusedMongo(1, allIDS) //Delete HotDog Collection IDS
+	foodDeleteUnusedMongo(1, allIDS) //Delete HotDog Collection IDS
 	fmt.Printf("Finished removing Unused Hotdogs in Mongo\n")
 	logWriter("Finished removing Hotdogs in Mongo.")
-	wg.Done() //Used for waitgroup
 }
 
 func eliminateHam(theUserIDS []int, theHams []int) {
@@ -147,10 +140,8 @@ func eliminateHam(theUserIDS []int, theHams []int) {
 	//Print log information
 	logWriter("Finished removing hamburgers for SQL.")
 	//Remove Hamburgers for Mongo
-	wg.Add(1)
-	go foodDeleteUnusedMongo(2, allIDS) //Delete HotDog Collection IDS
+	foodDeleteUnusedMongo(2, allIDS) //Delete HotDog Collection IDS
 	logWriter("Finished removing Hamburgers in Mongo.")
-	wg.Done()
 }
 
 //If ID is not found in user table, remove from the food table

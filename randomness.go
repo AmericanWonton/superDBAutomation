@@ -237,15 +237,8 @@ func giveRandomFood(userID int, newUser AUser) {
 	newUser.Hotdogs = insertHotDogs
 	newUser.Hamburgers = insertHamburgers
 	//InsertHotdog/Hamburgers for Mongo
-	//wg.Add(1)
-	//go updateUserMongo(newUser)
 	updateUserMongo(newUser)
-	//wg.Add(1)
-	//go insertHotDogsMongo(insertHotDogs)
 	insertHotDogsMongo(insertHotDogs)
-	//wg.Add(1)
-	//go insertHamburgersMongo(insertHamburgers)
 	insertHamburgersMongo(insertHamburgers)
 	logWriter("Finished giving random food for Mongo.")
-	wg.Done() //Used for wait group
 }
