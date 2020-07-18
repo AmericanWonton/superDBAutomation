@@ -23,20 +23,18 @@ var logFile *os.File
 
 func logWriter(logMessage string) {
 	//Logging info
-	/*
-		fmt.Println("Writing log files.")
-		logFile, err := os.OpenFile("/logging/superdbautolog.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	logFile, err := os.OpenFile("/home/ubuntu/logging/superdbautolog.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 
-		defer logFile.Close()
+	defer logFile.Close()
 
-		if err != nil {
-			log.Fatalln("Failed opening file")
-		}
+	if err != nil {
+		fmt.Println("Can't print log file.")
+		log.Fatalln("Failed opening file")
+	}
 
-		log.SetOutput(logFile)
+	log.SetOutput(logFile)
 
-		log.Println(logMessage)
-	*/
+	log.Println(logMessage)
 }
 
 //Here is our waitgroup
