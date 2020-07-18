@@ -22,12 +22,13 @@ var theContext context.Context
 
 func connectDB() *mongo.Client {
 	//Setup Mongo connection to Atlas Cluster
-	theClient, err := mongo.NewClient(options.Client().ApplyURI("mongodb+srv://joek:superduperPWord@superdbcluster.kswud.mongodb.net/superdbtest1?retryWrites=true&w=majority"))
+	theClient, err := mongo.NewClient(options.Client().ApplyURI("mongodb://bigjohnny:figleafs@superdbcluster-shard-00-00.kswud.mongodb.net:27017,superdbcluster-shard-00-01.kswud.mongodb.net:27017,superdbcluster-shard-00-02.kswud.mongodb.net:27017/superdbtest1?ssl=true&replicaSet=atlas-pvjlol-shard-0&authSource=admin&retryWrites=true&w=majority"))
 	if err != nil {
 		fmt.Printf("Errored getting mongo client: %v\n", err)
 		log.Fatal(err)
 	}
-	theContext, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	theContext, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 	err = theClient.Connect(theContext)
 	if err != nil {
 		fmt.Printf("Errored getting mongo client context: %v\n", err)
@@ -87,6 +88,7 @@ func updateUserMongo(theUser AUser) {
 	} else {
 		fmt.Printf("Updated user, %v,  here is the result: %v\n", theUser.UserID, result)
 	}
+	wg.Done() //For GoRoutine
 }
 
 func insertHotDogsMongo(postedHotDogs MongoHotDogs) {
@@ -101,7 +103,7 @@ func insertHotDogsMongo(postedHotDogs MongoHotDogs) {
 		log.Fatal(err)
 	}
 	fmt.Println("Inserted multiple documents: ", insertManyResult.InsertedIDs) //Data insert results
-	fmt.Printf("DEBUG: NO REAL INSERTION TO HAMBURGER COLLECTION YET\n")
+	wg.Done()                                                                  //For GoRoutine
 }
 
 func insertHotDogMongo(w http.ResponseWriter, req *http.Request) {
@@ -161,6 +163,7 @@ func insertHamburgersMongo(postedHamburgers MongoHamburgers) {
 		log.Fatal(err)
 	}
 	fmt.Println("Inserted multiple documents: ", insertManyResult.InsertedIDs) //Data insert results
+	wg.Done()                                                                  //For GoRoutine
 }
 
 func insertHamburgerMongo(w http.ResponseWriter, req *http.Request) {
@@ -376,6 +379,7 @@ func foodDeleteMongo(whichFoods int, foodSlurs []string) {
 	} else {
 		logWriter("Error, 'whichFoods' is not 1 or two. No food records deleted from Mongo")
 	}
+	wg.Done() //For GoRoutine
 }
 
 //DEBUG: MAYBE SHOULD STEAL CODE FROM foodDeleteMongo
@@ -406,6 +410,7 @@ func foodDeleteUnusedMongo(whichFood int, theIDS []int) {
 		fmt.Printf("Wrong data entry for deleting hotdogs.\n")
 		logWriter("Wrong data entry for deleting hotdogs.")
 	}
+	wg.Done() //For GoRoutines
 }
 
 //This should give a random id value to both food groups

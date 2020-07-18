@@ -26,9 +26,10 @@ func insertHotDogs(aHotdogs []Hotdog) {
 
 		fmt.Printf("DEBUG: %v rows effected.\n", n)
 	}
+	wg.Done() //For GoRoutines
 }
 
-//INSERT HOTDOG
+//INSERT Hamburgers
 func insertHamburgers(aBurgers []Hamburger) {
 	postedHamburgers := aBurgers
 	for x := 0; x < len(postedHamburgers); x++ {
@@ -43,6 +44,7 @@ func insertHamburgers(aBurgers []Hamburger) {
 		fmt.Printf("DEBUG: %v rows effected.\n", n)
 		stmt.Close()
 	}
+	wg.Done()
 }
 
 //INSERT USER(s)
@@ -95,6 +97,8 @@ func insertUsers(theUsers []User) {
 
 	//Give Users random food
 	for q := 0; q < len(insertionUsers.Users); q++ {
-		giveRandomFood(insertionUsers.Users[q].UserID, insertionUsers.Users[q])
+		wg.Add(1)
+		go giveRandomFood(insertionUsers.Users[q].UserID, insertionUsers.Users[q])
 	}
+	wg.Done() //For GoRoutines
 }

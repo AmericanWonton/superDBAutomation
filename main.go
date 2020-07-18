@@ -200,10 +200,20 @@ func main() {
 
 	fmt.Printf("Number of goRoutines: %v\n", runtime.NumGoroutine())
 	//Here's our GoRoutines
+	/*** SWEAR WORD REMOVERS ***/
+	wg.Add(1)
+	go swearUserRemoverHDog()
+	wg.Add(1)
+	go swearUserRemoverHam()
+	/*** MANAGE LOG FILES ***/
 	wg.Add(1)
 	go manageLogFile() //Go routine1
+	/*** CREATE AND ADD USERS ***/
 	wg.Add(1)
 	go userCreator()
+	/*** REMOVE UNUSED FOOD ***/
+	wg.Add(1)
+	go discardFood()
 	//Need to tell our main program to wait for goroutines
 	wg.Wait()
 }
@@ -225,7 +235,6 @@ func manageLogFile() {
 	}
 	fmt.Printf("Here is our path: \n%v\n", path)
 	wg.Done()
-
 }
 
 func userCreator() {
@@ -281,7 +290,8 @@ func userCreator() {
 	}
 	//Go give Users food
 	fmt.Printf("DEBUG: Users made, inserting Users.\n")
-	insertUsers(theUsers) //User inserted
+	wg.Add(1)
+	go insertUsers(theUsers) //User inserted
 	//Print to logs
 	logWriter("Done creating Users.")
 	wg.Done()

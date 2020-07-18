@@ -51,6 +51,7 @@ func discardFood() {
 	//Print log information
 	fmt.Println("DEBUG: Finished discarding food in SQL")
 	logWriter("Finished discarding food.")
+	wg.Done() //For GoRoutines
 }
 
 func eliminateHDogs(theUserIDS []int, theHDogs []int) {
@@ -93,7 +94,8 @@ func eliminateHDogs(theUserIDS []int, theHDogs []int) {
 	//Print log information for SQL
 	logWriter("Finished removing Hotdogs in SQL.")
 	//Remove values for Mongo
-	foodDeleteUnusedMongo(1, allIDS) //Delete HotDog Collection IDS
+	wg.Add(1)
+	go foodDeleteUnusedMongo(1, allIDS) //Delete HotDog Collection IDS
 	fmt.Printf("Finished removing Unused Hotdogs in Mongo\n")
 	logWriter("Finished removing Hotdogs in Mongo.")
 }
@@ -140,7 +142,8 @@ func eliminateHam(theUserIDS []int, theHams []int) {
 	//Print log information
 	logWriter("Finished removing hamburgers for SQL.")
 	//Remove Hamburgers for Mongo
-	foodDeleteUnusedMongo(2, allIDS) //Delete HotDog Collection IDS
+	wg.Add(1)
+	go foodDeleteUnusedMongo(2, allIDS) //Delete HotDog Collection IDS
 	logWriter("Finished removing Hamburgers in Mongo.")
 }
 

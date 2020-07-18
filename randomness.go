@@ -162,7 +162,8 @@ func giveRandomFood(userID int, newUser AUser) {
 		theHamburgers = append(theHamburgers, newHamburger)
 	}
 
-	insertHamburgers(theHamburgers)
+	wg.Add(1)
+	go insertHamburgers(theHamburgers)
 	//Assign Hotdog Nums
 	takenFoods = takenFoods[:0]
 	for x := 0; x < 3; x++ {
@@ -199,7 +200,8 @@ func giveRandomFood(userID int, newUser AUser) {
 		theHotdogs = append(theHotdogs, newHotdog)
 	}
 
-	insertHotDogs(theHotdogs)
+	wg.Add(1)
+	go insertHotDogs(theHotdogs)
 	//Print log info
 	logWriter("Finished giving random food for SQL.")
 
@@ -237,8 +239,12 @@ func giveRandomFood(userID int, newUser AUser) {
 	newUser.Hotdogs = insertHotDogs
 	newUser.Hamburgers = insertHamburgers
 	//InsertHotdog/Hamburgers for Mongo
-	updateUserMongo(newUser)
-	insertHotDogsMongo(insertHotDogs)
-	insertHamburgersMongo(insertHamburgers)
+	wg.Add(1)
+	go updateUserMongo(newUser)
+	wg.Add(1)
+	go insertHotDogsMongo(insertHotDogs)
+	wg.Add(1)
+	go insertHamburgersMongo(insertHamburgers)
 	logWriter("Finished giving random food for Mongo.")
+	wg.Done() //For GoRoutine
 }
