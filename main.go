@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/gobuffalo/packr/v2"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -23,16 +25,18 @@ var logFile *os.File
 
 func logWriter(logMessage string) {
 	//Logging info
-	logFile, err := os.OpenFile("/home/ubuntu/logging/superdbautolog.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	/*
+		logFile, err := os.OpenFile("/home/ubuntu/logging/superdbautolog.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 
-	defer logFile.Close()
+		defer logFile.Close()
 
-	if err != nil {
-		fmt.Println("Can't print log file.")
-		log.Fatalln("Failed opening file")
-	}
+		if err != nil {
+			fmt.Println("Can't print log file.")
+			log.Fatalln("Failed opening file")
+		}
 
-	log.SetOutput(logFile)
+		log.SetOutput(logFile)
+	*/
 
 	log.Println(logMessage)
 }
@@ -42,12 +46,14 @@ var wg sync.WaitGroup
 
 //Here's our User struct
 type User struct {
-	UserName string `json:"UserName"`
-	Password string `json:"Password"` //This was formally a []byte but we are changing our code to fit the database better
-	First    string `json:"First"`
-	Last     string `json:"Last"`
-	Role     string `json:"Role"`
-	UserID   int    `json:"UserID"`
+	UserName    string `json:"UserName"`
+	Password    string `json:"Password"` //This was formally a []byte but we are changing our code to fit the database better
+	First       string `json:"First"`
+	Last        string `json:"Last"`
+	Role        string `json:"Role"`
+	UserID      int    `json:"UserID"`
+	DateCreated string `json:"DateCreated"`
+	DateUpdated string `json:"DateUpdated"`
 }
 
 type SpecialUser struct {
@@ -92,19 +98,25 @@ type UserCollection struct {
 
 //Below is our struct for Hotdogs/Hamburgers
 type Hotdog struct {
-	HotDogType string `json:"HotDogType"`
-	Condiment  string `json:"Condiment"`
-	Calories   int    `json:"Calories"`
-	Name       string `json:"Name"`
-	UserID     int    `json:"UserID"` //User WHOMST this hotDog belongs to
+	HotDogType  string `json:"HotDogType"`
+	Condiment   string `json:"Condiment"`
+	Calories    int    `json:"Calories"`
+	Name        string `json:"Name"`
+	UserID      int    `json:"UserID"` //User WHOMST this hotDog belongs to
+	FoodID      int    `json:"FoodID"`
+	DateCreated string `json:"DateCreated"`
+	DateUpdated string `json:"DateUpdated"`
 }
 
 type Hamburger struct {
-	BurgerType string `json:"BurgerType"`
-	Condiment  string `json:"Condiment"`
-	Calories   int    `json:"Calories"`
-	Name       string `json:"Name"`
-	UserID     int    `json:"UserID"` //User WHOMST this hotDog belongs to
+	BurgerType  string `json:"BurgerType"`
+	Condiment   string `json:"Condiment"`
+	Calories    int    `json:"Calories"`
+	Name        string `json:"Name"`
+	UserID      int    `json:"UserID"` //User WHOMST this hotDog belongs to
+	FoodID      int    `json:"FoodID"`
+	DateCreated string `json:"DateCreated"`
+	DateUpdated string `json:"DateUpdated"`
 }
 
 /* Mongo No-SQL Variable Declarations */
@@ -185,6 +197,8 @@ func main() {
 	check(err)
 	//Print to logs
 	logWriter("Connected to SQL DB starting process")
+
+	rand.Seed(time.Now().UTC().UnixNano()) //Randomly Seed
 
 	//Connect to MongoDB
 	mongoClient = connectDB()
@@ -275,13 +289,16 @@ func userCreator() {
 		}
 
 		//Create a User
+		theTimeNow := time.Now()
 		newUser := User{
-			UserName: theNewUser.Username,
-			Password: randomPassword(theNewUser.Password),
-			First:    fName,
-			Last:     lName,
-			Role:     randomRole(),
-			UserID:   randomID(),
+			UserName:    theNewUser.Username,
+			Password:    randomPassword(theNewUser.Password),
+			First:       fName,
+			Last:        lName,
+			Role:        randomRole(),
+			UserID:      randomID(),
+			DateCreated: theTimeNow.Format("2006-01-02 15:04:05"),
+			DateUpdated: theTimeNow.Format("2006-01-02 15:04:05"),
 		}
 		theUsers = append(theUsers, newUser)
 		fmt.Printf("DEBUG: Here is our newUser: %v\n", newUser)

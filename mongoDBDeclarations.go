@@ -56,6 +56,7 @@ func insertUsersMongo(pileOUser TheUsers) {
 	err = mongoClient.Ping(theContext, readpref.Primary())
 	if err != nil {
 		fmt.Printf("Errored pinging MongoDB: %v\n", err)
+		logWriter("Error pinging mongo client: " + err.Error())
 		log.Fatal(err)
 	}
 	//Marshal it into our type

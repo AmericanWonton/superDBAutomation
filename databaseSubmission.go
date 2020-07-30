@@ -13,10 +13,10 @@ func insertHotDogs(aHotdogs []Hotdog) {
 	postedHotDogs := aHotdogs
 
 	for x := 0; x < len(aHotdogs); x++ {
-		stmt, err := db.Prepare("INSERT INTO hot_dogs(TYPE, CONDIMENT, CALORIES, NAME, USER_ID) VALUES(?,?,?,?,?)")
+		stmt, err := db.Prepare("INSERT INTO hot_dogs(TYPE, CONDIMENT, CALORIES, NAME, USER_ID, FOOD_ID, DATE_CREATED, DATE_UPDATED) VALUES(?,?,?,?,?,?,?,?)")
 
 		r, err := stmt.Exec(postedHotDogs[x].HotDogType, postedHotDogs[x].Condiment, postedHotDogs[x].Calories,
-			postedHotDogs[x].Name, postedHotDogs[x].UserID)
+			postedHotDogs[x].Name, postedHotDogs[x].UserID, postedHotDogs[x].FoodID, postedHotDogs[x].DateCreated, postedHotDogs[x].DateUpdated)
 		check(err)
 
 		n, err := r.RowsAffected()
@@ -33,10 +33,11 @@ func insertHotDogs(aHotdogs []Hotdog) {
 func insertHamburgers(aBurgers []Hamburger) {
 	postedHamburgers := aBurgers
 	for x := 0; x < len(postedHamburgers); x++ {
-		stmt, err := db.Prepare("INSERT INTO hamburgers(TYPE, CONDIMENT, CALORIES, NAME, USER_ID) VALUES(?,?,?,?,?)")
+		stmt, err := db.Prepare("INSERT INTO hamburgers(TYPE, CONDIMENT, CALORIES, NAME, USER_ID, FOOD_ID, DATE_CREATED, DATE_UPDATED) VALUES(?,?,?,?,?,?,?,?)")
 
 		r, err := stmt.Exec(postedHamburgers[x].BurgerType, postedHamburgers[x].Condiment,
-			postedHamburgers[x].Calories, postedHamburgers[x].Name, postedHamburgers[x].UserID)
+			postedHamburgers[x].Calories, postedHamburgers[x].Name, postedHamburgers[x].UserID,
+			postedHamburgers[x].FoodID, postedHamburgers[x].DateCreated, postedHamburgers[x].DateUpdated)
 		check(err)
 
 		n, err := r.RowsAffected()
@@ -54,10 +55,11 @@ func insertUsers(theUsers []User) {
 
 	//Add User to the SQL Database
 	for x := 0; x < len(theUsers); x++ {
-		stmt, err := db.Prepare("INSERT INTO users(USERNAME, PASSWORD, FIRSTNAME, LASTNAME, ROLE, USER_ID) VALUES(?,?,?,?,?,?)")
+		stmt, err := db.Prepare("INSERT INTO users(USERNAME, PASSWORD, FIRSTNAME, LASTNAME, ROLE, USER_ID, DATE_CREATED, DATE_UPDATED) VALUES(?,?,?,?,?,?,?,?)")
 
 		r, err := stmt.Exec(postedUsers[x].UserName, postedUsers[x].Password, postedUsers[x].First,
-			postedUsers[x].Last, postedUsers[x].Role, postedUsers[x].UserID)
+			postedUsers[x].Last, postedUsers[x].Role, postedUsers[x].UserID,
+			postedUsers[x].DateCreated, postedUsers[x].DateUpdated)
 		check(err)
 
 		n, err := r.RowsAffected()

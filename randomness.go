@@ -3,12 +3,15 @@ package main
 import (
 	"encoding/hex"
 	"fmt"
+	"log"
 	"math/rand"
 	"strconv"
+	"strings"
 	"time"
 
 	_ "github.com/go-mysql/errors"
 	_ "github.com/go-sql-driver/mysql"
+	"gopkg.in/mgo.v2/bson"
 )
 
 const min int = 0
@@ -54,52 +57,96 @@ func randomRole() string {
 }
 
 func randomID() int {
+	fmt.Printf("DEBUG: Creating Random ID for User/Food\n")
+	finalID := 0        //The final, unique ID to return to the food/user
+	randInt := 0        //The random integer added onto ID
+	randIntString := "" //The integer built through a string...
+	min, max := 0, 9    //The min and Max value for our randInt
+	foundID := false
+	for foundID == false {
+		randInt = 0
+		randIntString = ""
+		//Create the random number, convert it to string
 
-	//Make User and USERID
-	goodNum := false
-	theID := 0
-
-	for goodNum == false {
-		//Query the database for all IDS
-		row, err := db.Query(`SELECT user_id FROM users;`)
-		check(err)
-
-		//Build the random, unique integer to be assigned to this User
-		goodNumFound := true //A second checker to break this loop
-		randInt := 0         //The random integer added onto ID
-		var databaseID int   //The ID returned from the database while searching
-		randIntString := ""  //The integer built through a string...
-		min, max := 0, 9     //The min and Max value for our randInt
 		for i := 0; i < 8; i++ {
 			randInt = rand.Intn(max-min) + min
 			randIntString = randIntString + strconv.Itoa(randInt)
 		}
-		theID, err = strconv.Atoi(randIntString)
+		//Once we have a string of numbers, we can convert it back to an integer
+		theID, err := strconv.Atoi(randIntString)
 		if err != nil {
+			fmt.Printf("We got an error converting a string back to a number, %v\n", err)
+			fmt.Printf("Here is randInt: %v\n and randIntString: %v\n", randInt, randIntString)
 			fmt.Println(err)
+			log.Fatal(err)
 		}
-		//Check to see if the built number is taken.
-		for row.Next() {
-			err = row.Scan(&databaseID)
-			check(err)
-			if databaseID == theID {
-				//Found the number, need to create another one!
-				goodNumFound = false
-				break
+		//Search all our collections to see if this UserID is unique
+		canExit := []bool{true, true, true}
+		fmt.Printf("DEBUG: We are going to see if this ID is in our food or User DBs: %v\n", theID)
+		//User collection
+		userCollection := mongoClient.Database("superdbtest1").Collection("users") //Here's our collection
+		var testAUser AUser
+		theErr := userCollection.FindOne(theContext, bson.M{"userid": theID}).Decode(&testAUser)
+		if theErr != nil {
+			if strings.Contains(theErr.Error(), "no documents in result") {
+				fmt.Printf("It's all good, this document wasn't found for User and our ID is clean.\n")
+				canExit[0] = true
 			} else {
-
+				fmt.Printf("DEBUG: We have another error for finding a unique UserID: \n%v\n", theErr)
+				canExit[0] = false
+				log.Fatal(theErr)
 			}
 		}
-		row.Close()
-		//Final check to see if we need to go through this loop again
-		if goodNumFound == false {
-			goodNum = false
+		//Check hotdog collection
+		hotdogCollection := mongoClient.Database("superdbtest1").Collection("hotdogs") //Here's our collection
+		var testHotdog MongoHotDog
+		//Give 0 values to determine if these IDs are found
+		theFilter := bson.M{
+			"$or": []interface{}{
+				bson.M{"userid": theID},
+				bson.M{"foodid": theID},
+			},
+		}
+		theErr = hotdogCollection.FindOne(theContext, theFilter).Decode(&testHotdog)
+		if theErr != nil {
+			if strings.Contains(theErr.Error(), "no documents in result") {
+				fmt.Printf("It's all good, this document wasn't found for User/Hotdog and our ID is clean.\n")
+				canExit[1] = true
+			} else {
+				fmt.Printf("DEBUG: We have another error for finding a unique UserID: \n%v\n", theErr)
+				canExit[1] = false
+			}
+		}
+		//Check hamburger collection
+		hamburgerCollection := mongoClient.Database("superdbtest1").Collection("hamburgers") //Here's our collection
+		var testBurger MongoHamburger
+		//Give 0 values to determine if these IDs are found
+		theFilter2 := bson.M{
+			"$or": []interface{}{
+				bson.M{"userid": theID},
+				bson.M{"foodid": theID},
+			},
+		}
+		theErr = hamburgerCollection.FindOne(theContext, theFilter2).Decode(&testBurger)
+		if theErr != nil {
+			if strings.Contains(theErr.Error(), "no documents in result") {
+				canExit[2] = true
+				fmt.Printf("It's all good, this document wasn't found for User/hamburger and our ID is clean.\n")
+			} else {
+				fmt.Printf("DEBUG: We have another error for finding a unique UserID: \n%v\n", theErr)
+				canExit[2] = false
+			}
+		}
+		//Final check to see if we can exit this loop
+		if canExit[0] == true && canExit[1] == true && canExit[2] == true {
+			finalID = theID
+			foundID = true
 		} else {
-			goodNum = true
+			foundID = false
 		}
 	}
 
-	return theID
+	return finalID
 }
 
 func randomPassword(pWord string) string {
@@ -154,11 +201,12 @@ func giveRandomFood(userID int, newUser AUser) {
 	var theHamburgers []Hamburger
 	//Give 3 Hamburger
 	for z := 0; z < len(takenFoods); z++ {
+		theTimeNow := time.Now()
 		newHamburger := Hamburger{hamburgerArray.TypeArray[takenFoods[z]],
 			hamburgerArray.CondimentArray[takenFoods[z]],
 			hamburgerArray.CaloriesArray[takenFoods[z]],
 			hamburgerArray.NameArray[takenFoods[z]],
-			userID}
+			userID, randomIDCreation(), theTimeNow.Format("2006-01-02 15:04:05"), theTimeNow.Format("2006-01-02 15:04:05")}
 		theHamburgers = append(theHamburgers, newHamburger)
 	}
 
@@ -192,11 +240,12 @@ func giveRandomFood(userID int, newUser AUser) {
 	var theHotdogs []Hotdog
 	//Give 3 Hotdogs
 	for z := 0; z < len(takenFoods); z++ {
+		theTimeNow := time.Now()
 		newHotdog := Hotdog{hotDogArray.TypeArray[takenFoods[z]],
 			hotDogArray.CondimentArray[takenFoods[z]],
 			hotDogArray.CaloriesArray[takenFoods[z]],
 			hotDogArray.NameArray[takenFoods[z]],
-			userID}
+			userID, randomIDCreation(), theTimeNow.Format("2006-01-02 15:04:05"), theTimeNow.Format("2006-01-02 15:04:05")}
 		theHotdogs = append(theHotdogs, newHotdog)
 	}
 
