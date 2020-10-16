@@ -9,34 +9,34 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/gobuffalo/packr/v2"
 	"go.mongodb.org/mongo-driver/mongo"
 
 	_ "github.com/go-mysql/errors"
 	_ "github.com/go-sql-driver/mysql"
 )
 
-var logFile *os.File
+var logFile *os.File //used for logging
 
 func logWriter(logMessage string) {
 	//Logging info
-	/*
-		logFile, err := os.OpenFile("/home/ubuntu/logging/superdbautolog.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 
-		defer logFile.Close()
+	wd, _ := os.Getwd()
+	logDir := filepath.Join(wd, "logging", "autogenlog.txt")
+	logFile, err := os.OpenFile(logDir, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 
-		if err != nil {
-			fmt.Println("Can't print log file.")
-			log.Fatalln("Failed opening file")
-		}
+	defer logFile.Close()
 
-		log.SetOutput(logFile)
-	*/
+	if err != nil {
+		fmt.Println("Failed opening log file")
+	}
+
+	log.SetOutput(logFile)
 
 	log.Println(logMessage)
 }
@@ -104,6 +104,8 @@ type Hotdog struct {
 	Name        string `json:"Name"`
 	UserID      int    `json:"UserID"` //User WHOMST this hotDog belongs to
 	FoodID      int    `json:"FoodID"`
+	PhotoID     int    `json:"PhotoID"`
+	PhotoSrc    string `json:"PhotoSrc"`
 	DateCreated string `json:"DateCreated"`
 	DateUpdated string `json:"DateUpdated"`
 }
@@ -115,6 +117,8 @@ type Hamburger struct {
 	Name        string `json:"Name"`
 	UserID      int    `json:"UserID"` //User WHOMST this hotDog belongs to
 	FoodID      int    `json:"FoodID"`
+	PhotoID     int    `json:"PhotoID"`
+	PhotoSrc    string `json:"PhotoSrc"`
 	DateCreated string `json:"DateCreated"`
 	DateUpdated string `json:"DateUpdated"`
 }
@@ -144,6 +148,8 @@ type MongoHotDog struct {
 	Name        string   `json:"Name"`
 	FoodID      int      `json:"FoodID"`
 	UserID      int      `json:"UserID"` //User WHOMST this hotDog belongs to
+	PhotoID     int      `json:"PhotoID"`
+	PhotoSrc    string   `json:"PhotoSrc"`
 	DateCreated string   `json:"DateCreated"`
 	DateUpdated string   `json:"DateUpdated"`
 }
@@ -159,6 +165,8 @@ type MongoHamburger struct {
 	Name        string   `json:"Name"`
 	FoodID      int      `json:"FoodID"`
 	UserID      int      `json:"UserID"` //User WHOMST this hotDog belongs to
+	PhotoID     int      `json:"PhotoID"`
+	PhotoSrc    string   `json:"PhotoSrc"`
 	DateCreated string   `json:"DateCreated"`
 	DateUpdated string   `json:"DateUpdated"`
 }
@@ -173,9 +181,6 @@ var mongoClient *mongo.Client
 //mySQL database declarations
 var db *sql.DB
 var err error
-
-//Loading our templates in for ParseGlob: https://github.com/gobuffalo/packr/issues/16
-var templatesBox = packr.New("templates", "./static")
 
 // Handle Errors
 func HandleError(w http.ResponseWriter, err error) {
@@ -217,9 +222,6 @@ func main() {
 	go swearUserRemoverHDog()
 	wg.Add(1)
 	go swearUserRemoverHam()
-	/*** MANAGE LOG FILES ***/
-	wg.Add(1)
-	go manageLogFile() //Go routine1
 	/*** CREATE AND ADD USERS ***/
 	wg.Add(1)
 	go userCreator()
@@ -238,15 +240,6 @@ func check(err error) {
 		failureString := "Error with SQL: " + err.Error()
 		logWriter(failureString)
 	}
-}
-
-func manageLogFile() {
-	path, err := os.Getwd()
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Printf("Here is our path: \n%v\n", path)
-	wg.Done()
 }
 
 func userCreator() {
