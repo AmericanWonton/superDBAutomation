@@ -206,7 +206,7 @@ func giveRandomFood(userID int, newUser AUser) {
 			hamburgerArray.CondimentArray[takenFoods[z]],
 			hamburgerArray.CaloriesArray[takenFoods[z]],
 			hamburgerArray.NameArray[takenFoods[z]],
-			userID, randomIDCreation(), theTimeNow.Format("2006-01-02 15:04:05"), theTimeNow.Format("2006-01-02 15:04:05")}
+			userID, randomIDCreation(), 0, "no/src", theTimeNow.Format("2006-01-02 15:04:05"), theTimeNow.Format("2006-01-02 15:04:05")}
 		theHamburgers = append(theHamburgers, newHamburger)
 	}
 
@@ -245,7 +245,7 @@ func giveRandomFood(userID int, newUser AUser) {
 			hotDogArray.CondimentArray[takenFoods[z]],
 			hotDogArray.CaloriesArray[takenFoods[z]],
 			hotDogArray.NameArray[takenFoods[z]],
-			userID, randomIDCreation(), theTimeNow.Format("2006-01-02 15:04:05"), theTimeNow.Format("2006-01-02 15:04:05")}
+			userID, randomIDCreation(), 0, "no/src", theTimeNow.Format("2006-01-02 15:04:05"), theTimeNow.Format("2006-01-02 15:04:05")}
 		theHotdogs = append(theHotdogs, newHotdog)
 	}
 

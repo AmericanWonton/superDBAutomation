@@ -1,3 +1,8 @@
 logging
 autogenlog.txt
 logging/autogenlog.txt
+badWordRemover.go
+security/connectionstrings.txt
+connectionstrings.txt
+Makefile
+Dockerfile

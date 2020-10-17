@@ -8,6 +8,8 @@ import (
 const successMessage string = "Successful Insert"
 const failureMessage string = "Unsuccessful Insert"
 
+var dbConnectString string
+
 //POST hotdog, Mainpage
 func insertHotDogs(aHotdogs []Hotdog) {
 	postedHotDogs := aHotdogs

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -20,6 +21,11 @@ import (
 	_ "github.com/go-mysql/errors"
 	_ "github.com/go-sql-driver/mysql"
 )
+
+func init() {
+	//Initailize Connection Strings
+	credentialsInitialize()
+}
 
 var logFile *os.File //used for logging
 
@@ -191,9 +197,11 @@ func HandleError(w http.ResponseWriter, err error) {
 }
 
 func main() {
+	rand.Seed(time.Now().UTC().UnixNano()) //Randomly Seed
+
 	//open SQL connection
 	db, err = sql.Open("mysql",
-		"joek1:fartghookthestrong69@tcp(food-database.cd8ujtto1hfj.us-east-2.rds.amazonaws.com)/food-database-schema?charset=utf8")
+		dbConnectString)
 	check(err)
 	//db.SetMaxOpenConns(1) //Needed for DB
 	defer db.Close()
@@ -202,8 +210,6 @@ func main() {
 	check(err)
 	//Print to logs
 	logWriter("Connected to SQL DB starting process")
-
-	rand.Seed(time.Now().UTC().UnixNano()) //Randomly Seed
 
 	//Connect to MongoDB
 	mongoClient = connectDB()
@@ -303,4 +309,31 @@ func userCreator() {
 	//Print to logs
 	logWriter("Done creating Users.")
 	wg.Done()
+}
+
+func credentialsInitialize() {
+	currDir, _ := os.Getwd()
+	theCreds := filepath.Join(currDir, "security", "connectionstrings.txt")
+
+	file, err := os.Open(theCreds)
+
+	if err != nil {
+		errMsg := "Trouble opening file for Credentials: " + err.Error()
+		fmt.Printf(errMsg)
+		logWriter(errMsg)
+	}
+
+	scanner := bufio.NewScanner(file)
+
+	scanner.Split(bufio.ScanLines)
+	var text []string
+
+	for scanner.Scan() {
+		text = append(text, scanner.Text())
+	}
+
+	file.Close()
+
+	dbConnectString = text[0]
+	theURI = text[1]
 }
