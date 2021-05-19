@@ -199,6 +199,8 @@ func HandleError(w http.ResponseWriter, err error) {
 func main() {
 	rand.Seed(time.Now().UTC().UnixNano()) //Randomly Seed
 
+	wkdir, _ := os.Getwd()
+	fmt.Printf("Here is our current directory: %v\n", wkdir)
 	//open SQL connection
 	db, err = sql.Open("mysql",
 		dbConnectString)
